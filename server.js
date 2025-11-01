@@ -27,7 +27,7 @@ app.get('/', (req, res) => {
 // Main quiz solving endpoint
 app.post('/api/solve', async (req, res) => {
   const startTime = Date.now();
-  
+
   console.log('\n=== Received Quiz Request ===');
   console.log('Time:', new Date().toISOString());
   console.log('Body:', JSON.stringify(req.body, null, 2));
@@ -54,7 +54,7 @@ app.post('/api/solve', async (req, res) => {
 
     // Process quiz asynchronously (don't block response)
     console.log('✅ Request accepted, processing asynchronously...');
-    
+
     // Solve the quiz in the background
     solveQuiz(email, secret, url).catch(error => {
       console.error('❌ Quiz solving failed:', error.message);
@@ -63,7 +63,7 @@ app.post('/api/solve', async (req, res) => {
 
   } catch (error) {
     console.error('❌ Request handling error:', error);
-    
+
     // Only respond if we haven't sent a response yet
     if (!res.headersSent) {
       res.status(500).json({
@@ -77,6 +77,14 @@ app.post('/api/solve', async (req, res) => {
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Express error:', err);
+
+  // Handle JSON parse errors
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    return res.status(400).json({
+      error: 'Invalid JSON'
+    });
+  }
+
   if (!res.headersSent) {
     res.status(500).json({
       error: 'Internal server error'
