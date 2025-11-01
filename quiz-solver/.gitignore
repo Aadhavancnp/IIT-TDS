@@ -1,0 +1,29 @@
+# Environment
+.env
+
+# Dependencies
+node_modules/
+bun.lock
+
+# Logs
+*.log
+npm-debug.log*
+
+# Temp files
+temp/
+downloads/
+*.tmp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing
+test-results/
+screenshots/
