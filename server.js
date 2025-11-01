@@ -92,8 +92,8 @@ app.use((err, req, res, next) => {
   }
 });
 
-// Start server (only for local development)
-if (process.env.NODE_ENV !== 'production') {
+// Start server (skip only for Vercel serverless)
+if (!process.env.VERCEL) {
   app.listen(PORT, () => {
     console.log('\n🚀 LLM Analysis Quiz Solver');
     console.log('================================');

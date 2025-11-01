@@ -5,7 +5,7 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "start": "bun run server.js",
+    "start": "node server.js",
     "dev": "bun run --watch server.js",
     "setup": "bun run setup.js",
     "test": "bun run test.js"
@@ -19,6 +19,9 @@
   ],
   "author": "Aadhavan",
   "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
     "@sparticuz/chromium": "^141.0.0",
     "axios": "^1.13.1",
@@ -26,9 +29,7 @@
     "express": "^5.1.0",
     "form-data": "^4.0.4",
     "pdf-parse": "^2.4.5",
+    "puppeteer": "^24.27.0",
     "puppeteer-core": "^24.27.0"
-  },
-  "devDependencies": {
-    "puppeteer": "^24.27.0"
   }
 }
