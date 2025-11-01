@@ -3,21 +3,14 @@
     "env": {
         "NODE_ENV": "production"
     },
-    "builds": [
-        {
-            "src": "server.js",
-            "use": "@vercel/node",
-            "config": {
-                "maxDuration": 300,
-                "includeFiles": ["lib/**"],
-                "excludeFiles": ["node_modules/puppeteer/**"]
-            }
-        }
-    ],
     "routes": [
         {
-            "src": "/(.*)",
-            "dest": "server.js"
+            "src": "/api/solve",
+            "dest": "/api/solve.js"
+        },
+        {
+            "src": "/",
+            "dest": "/api/solve.js"
         }
     ]
 }

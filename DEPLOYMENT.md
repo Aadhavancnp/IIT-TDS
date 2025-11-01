@@ -11,18 +11,22 @@ This project uses **Puppeteer** for headless browser automation, which has limit
 ## Recommended Deployment Options
 
 ### Option 1: Use Render.com (Recommended)
+
 - Supports long-running Node.js servers
 - No size limits
 - Free tier available
 - Deploy: `https://render.com/`
 
 ### Option 2: Use Railway.app
+
 - Supports Docker/Node.js
 - Generous free tier
 - Deploy: `https://railway.app/`
 
 ### Option 3: Use Vercel with @sparticuz/chromium
+
 Install the serverless-compatible chromium:
+
 ```bash
 npm install @sparticuz/chromium puppeteer-core
 ```
