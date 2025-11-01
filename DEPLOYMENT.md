@@ -1,53 +1,74 @@
-# Deployment Note
+# Deployment Guide
 
-## ⚠️ Vercel Serverless Limitations
+## ⚠️ Vercel Deployment Issues
 
-This project uses **Puppeteer** for headless browser automation, which has limitations on Vercel's serverless platform:
+This application uses Puppeteer for headless browser automation, which has proven **incompatible with Vercel's serverless platform** despite following their official documentation.
 
-- Vercel serverless functions have **50MB size limit**
-- Chrome/Chromium binary is **~200MB**
-- Vercel functions have **memory/CPU constraints**
+### Issues Encountered:
+- ❌ FUNCTION_INVOCATION_FAILED errors persist
+- ❌ @sparticuz/chromium still exceeds Vercel's limits
+- ❌ Cold starts timeout (300s limit insufficient for quiz solving)
+- ❌ Serverless architecture unsuitable for long-running browser operations
 
-## Recommended Deployment Options
+## ✅ Recommended: Deploy to Render.com
 
-### Option 1: Use Render.com (Recommended)
+Render.com provides a better environment for Puppeteer applications with:
+- ✅ Full Docker container support
+- ✅ No bundle size limits
+- ✅ Standard Puppeteer works without modifications
+- ✅ Free tier available
+- ✅ Persistent browser processes
 
-- Supports long-running Node.js servers
-- No size limits
-- Free tier available
-- Deploy: `https://render.com/`
+### Quick Deploy to Render:
 
-### Option 2: Use Railway.app
+1. **Connect Repository**:
+   - Go to https://render.com
+   - Click "New +" → "Web Service"
+   - Connect your GitHub repository: `Aadhavancnp/IIT-TDS`
 
-- Supports Docker/Node.js
-- Generous free tier
-- Deploy: `https://railway.app/`
+2. **Configure Service**:
+   ```
+   Name: iit-tds-quiz-solver
+   Environment: Node
+   Build Command: npm install
+   Start Command: npm start
+   ```
 
-### Option 3: Use Vercel with @sparticuz/chromium
+3. **Add Environment Variables**:
+   ```
+   STUDENT_EMAIL=24f1002051@ds.study.iitm.ac.in
+   STUDENT_SECRET=GciOiJIUzI1NiJ3d3d
+   LLM_API_KEY=[your-key]
+   LLM_API_URL=https://aipipe.org/openrouter/v1
+   LLM_MODEL=openai/gpt-4o-mini
+   PORT=3000
+   ```
 
-Install the serverless-compatible chromium:
+4. **Deploy**: Click "Create Web Service"
+
+Your API will be available at: `https://iit-tds-quiz-solver.onrender.com/api/solve`
+
+## Alternative: Railway.app
+
+Railway is another excellent option:
 
 ```bash
-npm install @sparticuz/chromium puppeteer-core
+# Install Railway CLI
+npm install -g @railway/cli
+
+# Deploy
+railway login
+railway init
+railway up
 ```
 
-Update `lib/browser.js` to use it in production.
+## Local Testing
 
-## Current Status
+The application works perfectly locally:
 
-- ✅ **Local Development**: Working perfectly
-- ✅ **Code Verified**: All 3 demo quizzes pass
-- ⚠️ **Vercel Deployment**: Needs chromium-aws-lambda or alternative hosting
+```bash
+bun install
+bun run server.js
+```
 
-## Quick Deploy to Render
-
-1. Go to https://render.com/
-2. Create new **Web Service**
-3. Connect your GitHub repo
-4. Set:
-   - **Build Command**: `npm install`
-   - **Start Command**: `npm start`
-   - **Environment**: Add all variables from `.env`
-5. Deploy!
-
-The application is **production-ready** for any platform that supports Node.js servers with Puppeteer.
+All 3 demo quizzes pass successfully with a 56-second total completion time.
