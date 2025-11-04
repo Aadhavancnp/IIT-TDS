@@ -1,102 +1,80 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 /**
- * Test Script for LLM Analysis Quiz Solver
- * Tests the API with the demo endpoint
+ * Test script for LLM Code Deployment system
  */
 
-import axios from 'axios';
+const API_URL = process.env.API_URL || 'http://localhost:3000/api/build';
 
-const PORT = process.env.PORT || 3000;
-const API_URL = `http://localhost:${PORT}/api/solve`;
+const testPayload = {
+  email: process.env.STUDENT_EMAIL || '24f1002051@ds.study.iitm.ac.in',
+  secret: process.env.STUDENT_SECRET || 'Givefullmarks',
+  task: 'TestTask',
+  round: 1,
+  nonce: `test-${Date.now()}`,
+  brief: `Create a simple HTML page with:
+- A heading with id="test-heading" containing "Hello World"
+- A paragraph with id="test-content" containing "This is a test"
+- Bootstrap 5 styling`,
+  checks: [
+    'index.html exists',
+    'Has heading with id="test-heading"',
+    'Has paragraph with id="test-content"',
+    'Uses Bootstrap 5'
+  ],
+  evaluation_url: 'https://httpbin.org/post',
+  attachments: []
+};
 
-async function test() {
-  console.log('\n🧪 Testing LLM Analysis Quiz Solver\n');
+async function runTest() {
+  console.log('\n🧪 Testing LLM Code Deployment API\n');
+  console.log('Target:', API_URL);
+  console.log('Email:', testPayload.email);
+  console.log('\n' + '='.repeat(60) + '\n');
 
   try {
-    // Load environment
-    const email = process.env.STUDENT_EMAIL;
-    const secret = process.env.STUDENT_SECRET;
-
-    if (!email || !secret) {
-      console.error('❌ Missing STUDENT_EMAIL or STUDENT_SECRET in .env file');
-      console.log('\nRun: bun run setup\n');
-      process.exit(1);
-    }
-
-    console.log('Testing with:');
-    console.log('Email:', email);
-    console.log('Secret:', secret.substring(0, 3) + '...');
-    console.log('API:', API_URL);
-    console.log('\n--- Test 1: Health Check ---\n');
-
-    const healthResponse = await axios.get(`http://localhost:${PORT}/`);
-    console.log('✅ Health check passed');
-    console.log('Response:', healthResponse.data);
-
-    console.log('\n--- Test 2: Invalid Secret ---\n');
-
-    try {
-      await axios.post(API_URL, {
-        email: email,
-        secret: 'wrong-secret',
-        url: 'https://tds-llm-analysis.s-anand.net/demo'
-      });
-      console.log('❌ Should have rejected invalid secret');
-    } catch (error) {
-      if (error.response && error.response.status === 403) {
-        console.log('✅ Correctly rejected invalid secret');
-      } else {
-        console.log('❌ Wrong error:', error.message);
-      }
-    }
-
-    console.log('\n--- Test 3: Missing Fields ---\n');
-
-    try {
-      await axios.post(API_URL, {
-        email: email
-        // missing secret and url
-      });
-      console.log('❌ Should have rejected missing fields');
-    } catch (error) {
-      if (error.response && error.response.status === 400) {
-        console.log('✅ Correctly rejected missing fields');
-      } else {
-        console.log('❌ Wrong error:', error.message);
-      }
-    }
-
-    console.log('\n--- Test 4: Demo Quiz (Valid Request) ---\n');
-    console.log('This will start the actual quiz solving process...');
-    console.log('Watch the server logs for detailed progress.\n');
-
-    const demoResponse = await axios.post(API_URL, {
-      email: email,
-      secret: secret,
-      url: 'https://tds-llm-analysis.s-anand.net/demo'
+    console.log('📤 Sending request...\n');
+    
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(testPayload),
     });
 
-    console.log('✅ Request accepted');
-    console.log('Response:', demoResponse.data);
-    console.log('\n⏳ Quiz solving in progress (check server logs)...');
-    console.log('This may take 1-2 minutes.\n');
+    console.log('Status:', response.status, response.statusText);
+    
+    const data = await response.json();
+    console.log('\n📥 Response:\n');
+    console.log(JSON.stringify(data, null, 2));
 
-    console.log('💡 Tip: Watch the main terminal where you ran "bun start"');
-    console.log('         to see the quiz being solved step-by-step.\n');
+    if (response.status === 200) {
+      console.log('\n✅ TEST PASSED!');
+      console.log('\nThe API accepted the request.');
+      console.log('Check your GitHub account for a new repository: TestTask-r1');
+      console.log('It should appear at: https://github.com/Aadhavancnp/TestTask-r1');
+      console.log('\nMonitor the server logs for:');
+      console.log('  1. App generation status');
+      console.log('  2. Repository creation');
+      console.log('  3. GitHub Pages enablement');
+      console.log('  4. Evaluator notification');
+    } else {
+      console.log('\n❌ TEST FAILED!');
+      console.log('Expected status 200, got:', response.status);
+    }
+
+    console.log('\n' + '='.repeat(60) + '\n');
 
   } catch (error) {
-    if (error.code === 'ECONNREFUSED') {
-      console.error('❌ Cannot connect to server');
-      console.log('\nMake sure the server is running:');
-      console.log('  bun start\n');
-    } else {
-      console.error('❌ Test failed:', error.message);
-      if (error.response) {
-        console.log('Response:', error.response.data);
-      }
-    }
+    console.error('\n❌ TEST ERROR!\n');
+    console.error('Error:', error.message);
+    console.error('\nPossible causes:');
+    console.error('  1. Server not running (run: npm start)');
+    console.error('  2. Wrong API URL');
+    console.error('  3. Network issue');
+    console.log('\n' + '='.repeat(60) + '\n');
     process.exit(1);
   }
 }
 
-test();
+runTest();
