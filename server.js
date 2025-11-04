@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import express from "express";
 import { validateRequest, verifySecret } from "./lib/validator.js";
 import { generateApp } from "./lib/generator.js";
