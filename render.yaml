@@ -1,0 +1,18 @@
+web:
+  name: llm-deployment
+  env: node
+  buildCommand: npm install
+  startCommand: node server.js
+  envVars:
+    - key: NODE_ENV
+      value: production
+    - key: STUDENT_EMAIL
+      sync: false
+    - key: STUDENT_SECRET
+      sync: false
+    - key: GITHUB_TOKEN
+      sync: false
+    - key: GITHUB_USERNAME
+      sync: false
+    - key: AIPIPE_TOKEN
+      sync: false
