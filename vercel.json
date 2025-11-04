@@ -5,12 +5,12 @@
     },
     "routes": [
         {
-            "src": "/api/solve",
-            "dest": "/api/solve.js"
+            "src": "/api/build",
+            "dest": "/api/build.js"
         },
         {
             "src": "/",
-            "dest": "/api/solve.js"
+            "dest": "/api/build.js"
         }
     ]
 }

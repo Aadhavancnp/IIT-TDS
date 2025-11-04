@@ -1,23 +1,20 @@
 {
-  "name": "llm-analysis-quiz-solver",
+  "name": "llm-code-deployment",
   "version": "1.0.0",
-  "description": "LLM-powered quiz solver for data analysis tasks - IIT Madras TDS Course",
+  "description": "Automated app builder and deployer using LLMs and GitHub Pages",
   "main": "server.js",
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "build": "npm install && npx puppeteer browsers install chrome",
-    "postinstall": "npx puppeteer browsers install chrome",
-    "dev": "bun run --watch server.js",
+    "dev": "bun --watch server.js",
     "setup": "bun run setup.js",
     "test": "bun run test.js"
   },
   "keywords": [
     "llm",
-    "quiz",
-    "data-analysis",
-    "puppeteer",
-    "iit-madras"
+    "github",
+    "deployment",
+    "automation"
   ],
   "author": "Aadhavan",
   "license": "MIT",
@@ -25,13 +22,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@sparticuz/chromium": "^141.0.0",
-    "axios": "^1.13.1",
-    "cheerio": "^1.1.2",
-    "express": "^5.1.0",
-    "form-data": "^4.0.4",
-    "pdf-parse": "^2.4.5",
-    "puppeteer": "^24.27.0",
-    "puppeteer-core": "^24.27.0"
+    "express": "^4.18.2",
+    "octokit": "^3.1.2"
   }
 }
