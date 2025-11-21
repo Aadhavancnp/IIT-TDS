@@ -1,140 +1,102 @@
-import dotenv from "dotenv";
-dotenv.config();
+#!/usr/bin/env bun
+/**
+ * LLM Analysis Quiz Solver - Main Server
+ * Receives quiz tasks via POST /api/solve and solves them using LLMs
+ */
 
-import express from "express";
-import { validateRequest, verifySecret } from "./lib/validator.js";
-import { generateApp } from "./lib/generator.js";
-import { createAndDeployRepo } from "./lib/github.js";
-import { notifyEvaluator } from "./lib/evaluator.js";
+import express from 'express';
+import { validateRequest } from './lib/validator.js';
+import { solveQuiz } from './lib/quiz-solver.js';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+app.use(express.json({ limit: '10mb' }));
 
-app.use(express.json({ limit: "50mb" }));
+const PORT = process.env.PORT || 3000;
+const STUDENT_EMAIL = process.env.STUDENT_EMAIL;
 
 // Health check endpoint
-app.get("/", (req, res) => {
+app.get('/', (req, res) => {
   res.json({
-    status: "ok",
-    message: "LLM Code Deployment API",
-    email: process.env.STUDENT_EMAIL,
+    status: 'ok',
+    message: 'LLM Analysis Quiz Solver',
+    email: STUDENT_EMAIL,
+    timestamp: new Date().toISOString()
   });
 });
 
-// Main endpoint to receive task requests
-app.post("/api/build", async (req, res) => {
-  try {
-    console.log("\n=== Received Build Request ===");
-    console.log("Email:", req.body.email);
-    console.log("Task:", req.body.task);
-    console.log("Round:", req.body.round);
+// Main quiz solving endpoint
+app.post('/api/solve', async (req, res) => {
+  const startTime = Date.now();
 
-    // STEP 1: Validate request structure
+  console.log('\n=== Received Quiz Request ===');
+  console.log('Time:', new Date().toISOString());
+  console.log('Body:', JSON.stringify(req.body, null, 2));
+
+  try {
+    // Validate request
     const validation = validateRequest(req.body);
     if (!validation.valid) {
-      console.error("Validation failed:", validation.errors);
-      return res.status(400).json({
-        error: "Invalid request",
-        details: validation.errors,
+      console.log('❌ Validation failed:', validation.error);
+      return res.status(validation.status).json({
+        error: validation.error
       });
     }
 
-    // STEP 2: Verify secret
-    if (!verifySecret(req.body.secret)) {
-      console.error("Secret verification failed");
-      return res.status(403).json({ error: "Invalid secret" });
-    }
+    const { email, secret, url } = req.body;
 
-    // STEP 3: Send 200 response immediately
+    // Respond immediately with 200 OK
     res.status(200).json({
-      status: "accepted",
-      message: "Request received and processing started",
-      task: req.body.task,
-      round: req.body.round,
+      status: 'accepted',
+      message: 'Quiz solving started',
+      url: url,
+      email: email
     });
 
-    // STEP 4: Process asynchronously (don't block response)
-    processRequest(req.body).catch((err) => {
-      console.error("Error processing request:", err);
+    // Process quiz asynchronously (don't block response)
+    console.log('✅ Request accepted, processing asynchronously...');
+
+    // Solve the quiz in the background
+    solveQuiz(email, secret, url).catch(error => {
+      console.error('❌ Quiz solving failed:', error.message);
+      console.error(error.stack);
     });
+
   } catch (error) {
-    console.error("Error handling request:", error);
+    console.error('❌ Request handling error:', error);
+
+    // Only respond if we haven't sent a response yet
     if (!res.headersSent) {
-      res.status(500).json({ error: "Internal server error" });
+      res.status(500).json({
+        error: 'Internal server error',
+        message: error.message
+      });
     }
   }
 });
 
-// Process the request asynchronously
-async function processRequest(requestData) {
-  const {
-    email,
-    task,
-    round,
-    nonce,
-    brief,
-    checks,
-    evaluation_url,
-    attachments,
-  } = requestData;
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Express error:', err);
 
-  try {
-    console.log("\n=== Starting App Generation ===");
-
-    // STEP 5: Generate app using LLM
-    const generatedCode = await generateApp({
-      brief,
-      checks,
-      attachments,
-      task,
-      round,
+  // Handle JSON parse errors
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    return res.status(400).json({
+      error: 'Invalid JSON'
     });
-
-    console.log("✓ App generated successfully");
-    console.log("\n=== Creating GitHub Repository ===");
-
-    // STEP 6: Create repo and deploy to GitHub Pages
-    const deployResult = await createAndDeployRepo({
-      task,
-      round,
-      generatedCode,
-      brief,
-      checks,
-    });
-
-    console.log("✓ Repository created:", deployResult.repo_url);
-    console.log("✓ Commit SHA:", deployResult.commit_sha);
-    console.log("✓ Pages URL:", deployResult.pages_url);
-
-    console.log("\n=== Notifying Evaluator ===");
-
-    // STEP 7: Notify evaluator
-    const notifyResult = await notifyEvaluator({
-      email,
-      task,
-      round,
-      nonce,
-      repo_url: deployResult.repo_url,
-      commit_sha: deployResult.commit_sha,
-      pages_url: deployResult.pages_url,
-      evaluation_url,
-    });
-
-    if (notifyResult.success) {
-      console.log("✓ Evaluator notified successfully");
-    } else {
-      console.error("✗ Failed to notify evaluator:", notifyResult.error);
-    }
-
-    console.log("\n=== Process Complete ===\n");
-  } catch (error) {
-    console.error("\n✗ Error in processing:", error.message);
-    console.error(error.stack);
   }
-}
 
+  if (!res.headersSent) {
+    res.status(500).json({
+      error: 'Internal server error'
+    });
+  }
+});
+
+// Start server
 app.listen(PORT, () => {
-  console.log(`\n🚀 Server running on http://localhost:${PORT}`);
-  console.log(`📧 Configured for: ${process.env.STUDENT_EMAIL}`);
-  console.log(`👤 GitHub user: ${process.env.GITHUB_USERNAME}\n`);
+  console.log('\n🚀 LLM Analysis Quiz Solver');
+  console.log('================================');
+  console.log(`Server: http://localhost:${PORT}`);
+  console.log(`Email: ${STUDENT_EMAIL}`);
+  console.log('Ready to solve quizzes!\n');
 });
