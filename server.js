@@ -92,11 +92,16 @@ app.use((err, req, res, next) => {
   }
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log('\n🚀 LLM Analysis Quiz Solver');
-  console.log('================================');
-  console.log(`Server: http://localhost:${PORT}`);
-  console.log(`Email: ${STUDENT_EMAIL}`);
-  console.log('Ready to solve quizzes!\n');
-});
+// Start server (skip only for Vercel serverless)
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log('\n🚀 LLM Analysis Quiz Solver');
+    console.log('================================');
+    console.log(`Server: http://localhost:${PORT}`);
+    console.log(`Email: ${STUDENT_EMAIL}`);
+    console.log('Ready to solve quizzes!\n');
+  });
+}
+
+// Export for Vercel serverless
+export default app;
